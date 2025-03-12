@@ -646,8 +646,8 @@ void publish_odometry(const rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPt
 
     geometry_msgs::msg::TransformStamped trans;
     trans.header.frame_id = "camera_init";
+    trans.header.stamp = odomAftMapped.header.stamp;
     trans.child_frame_id = "body";
-    trans.header.stamp = get_ros_time(lidar_end_time);
     trans.transform.translation.x = odomAftMapped.pose.pose.position.x;
     trans.transform.translation.y = odomAftMapped.pose.pose.position.y;
     trans.transform.translation.z = odomAftMapped.pose.pose.position.z;
@@ -821,7 +821,7 @@ public:
         this->declare_parameter<double>("mapping.b_gyr_cov", 0.0001);
         this->declare_parameter<double>("mapping.b_acc_cov", 0.0001);
         this->declare_parameter<double>("preprocess.blind", 0.01);
-        this->declare_parameter<int>("preprocess.lidar_type", AVIA);
+        this->declare_parameter<int>("preprocess.lidar_type", MID360);
         this->declare_parameter<int>("preprocess.scan_line", 16);
         this->declare_parameter<int>("preprocess.timestamp_unit", US);
         this->declare_parameter<int>("preprocess.scan_rate", 10);
@@ -857,7 +857,7 @@ public:
         this->get_parameter_or<double>("mapping.b_gyr_cov",b_gyr_cov,0.0001);
         this->get_parameter_or<double>("mapping.b_acc_cov",b_acc_cov,0.0001);
         this->get_parameter_or<double>("preprocess.blind", p_pre->blind, 0.01);
-        this->get_parameter_or<int>("preprocess.lidar_type", p_pre->lidar_type, AVIA);
+        this->get_parameter_or<int>("preprocess.lidar_type", p_pre->lidar_type, MID360);
         this->get_parameter_or<int>("preprocess.scan_line", p_pre->N_SCANS, 16);
         this->get_parameter_or<int>("preprocess.timestamp_unit", p_pre->time_unit, US);
         this->get_parameter_or<int>("preprocess.scan_rate", p_pre->SCAN_RATE, 10);
@@ -918,7 +918,7 @@ public:
             cout << "~~~~"<<ROOT_DIR<<" doesn't exist" << endl;
 
         /*** ROS subscribe initialization ***/
-        if (p_pre->lidar_type == AVIA)
+        if (p_pre->lidar_type == MID360)
         {
             sub_pcl_livox_ = this->create_subscription<livox_ros_driver2::msg::CustomMsg>(lid_topic, 20, livox_pcl_cbk);
         }
@@ -927,12 +927,12 @@ public:
             sub_pcl_pc_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(lid_topic, rclcpp::SensorDataQoS(), standard_pcl_cbk);
         }
         sub_imu_ = this->create_subscription<sensor_msgs::msg::Imu>(imu_topic, 10, imu_cbk);
-        pubLaserCloudFull_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("/cloud_registered", 20);
-        pubLaserCloudFull_body_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("/cloud_registered_body", 20);
-        pubLaserCloudEffect_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("/cloud_effected", 20);
-        pubLaserCloudMap_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("/Laser_map", 20);
-        pubOdomAftMapped_ = this->create_publisher<nav_msgs::msg::Odometry>("/Odometry", 20);
-        pubPath_ = this->create_publisher<nav_msgs::msg::Path>("/path", 20);
+        pubLaserCloudFull_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("cloud_registered", 20);
+        pubLaserCloudFull_body_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("cloud_registered_body", 20);
+        pubLaserCloudEffect_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("cloud_effected", 20);
+        pubLaserCloudMap_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("Laser_map", 20);
+        pubOdomAftMapped_ = this->create_publisher<nav_msgs::msg::Odometry>("aft_mapped_to_init", 20);
+        pubPath_ = this->create_publisher<nav_msgs::msg::Path>("path", 20);
         tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
 
         //------------------------------------------------------------------------------------------------------
